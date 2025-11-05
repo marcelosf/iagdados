@@ -1,5 +1,5 @@
 import dagster as dg
-from .resources import ComprasGovAPIResource, SqlAlchemyResource
+from .resources import ComprasGovAPIResource, ComprasgovTableResource ,SqlAlchemyResource
 
 
 @dg.definitions
@@ -11,6 +11,7 @@ def resources():
             ),
             "sqlalchemy": SqlAlchemyResource(
                 connection_string=dg.EnvVar("MARIA_DB_CONNECTION_STRING")                
-            )
+            ),
+            "comprasgov_table": ComprasgovTableResource() 
         }
     )

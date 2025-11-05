@@ -1,8 +1,8 @@
-import dagster as dg
 import pandas as pd
+import dagster as dg
 from pathlib import Path
-from sqlalchemy import Table, MetaData, Column, Integer, String
-from .resources import ComprasGovAPIResource, SqlAlchemyResource
+from .resources import ComprasGovAPIResource, SqlAlchemyResource, ComprasgovTableResource
+from sqlalchemy.orm import Session
 
 
 @dg.asset(kinds={"pandas"})
@@ -27,34 +27,12 @@ def raw_items_parquet(
     return file_path
 
 
-@dg.asset(kinds={"sqlalchemy", "mariadb"})
-def mariadb_items_table(context: dg.AssetExecutionContext, sqlalchemy: SqlAlchemyResource):
-    engine = sqlalchemy.get_engine()
-
-    metadata = MetaData()
-    Table(
-        "comprasgov_items",
-        metadata,
-        Column("codigo_item", Integer, primary_key=True),
-        Column("codigo_grupo", Integer),
-        Column("nome_grupo", String(255)),
-        Column("codigo_classe", Integer),
-        Column("nome_classe", String(2048)),
-        Column("codigo_pdm", Integer),
-        Column("nome_pdm", String(2048)),
-        Column("nome_item", String(2048)),
-        Column("codigo_ncm", Integer),
-        Column("descricriao_ncm", String(2048))
-    )
-    metadata.create_all(engine)
-
-
 @dg.asset(kinds={"pandas"})
-def items_data_mapping(
+def items_keys_mapping(
     context: dg.AssetExecutionContext,
     raw_items_parquet
 ):
-    df = pd.read_parquet(raw_items_parquet)
+    items_df = pd.read_parquet(raw_items_parquet)
     keys_mapping = {
         "codigoItem": "codigo_item",
         "codigoGrupo": "codigo_grupo",
@@ -63,7 +41,38 @@ def items_data_mapping(
         "nomeClasse": "nome_classe",
         "codigoPdm": "codigo_pdm",
         "nomePdm": "nome_pdm",
-        "nomeItem": "nome_item",
+        "descricaoItem": "descricao_item",
+        "statusItem": "status_item",
+        "itemSustentavel": "item_sustentavel",
         "codigoNcm": "codigo_ncm",
-        "descricaoNcm": "descricao_ncm"
-    }    
+        "descricaoNcm": "descricao_ncm",
+        "dataHoraAtualizacao": "data_hora_atualizacao"
+    }
+    renamed_df = items_df.rename(columns=keys_mapping)
+    return renamed_df
+
+
+@dg.asset(kinds={"parquet"})
+def silver_items_parquet(
+    context: dg.AssetExecutionContext,
+    items_keys_mapping: pd.DataFrame
+):
+    filename = "silver_items"
+    file_path = (Path(__file__).parent / f"../../data/silver/{filename}.parquet")
+    items_keys_mapping.to_parquet(file_path)
+    return file_path
+
+
+@dg.asset(kinds={"sqlalchemy", "mariadb", "pandas"})
+def items_data_loading(
+    sqlalchemy: SqlAlchemyResource,
+    items_keys_mapping: pd.DataFrame,
+    comprasgov_table: ComprasgovTableResource
+):
+    engine = sqlalchemy.get_engine()
+    data = items_keys_mapping.to_dict(orient="records")
+    ComprasGovTable = comprasgov_table.create_comprasgov_itens_table(engine=engine)
+
+    with Session(engine) as session:
+        session.bulk_insert_mappings(ComprasGovTable, data)
+        session.commit()

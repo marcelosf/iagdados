@@ -1,5 +1,6 @@
 import dagster as dg
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
+from sqlalchemy.orm import declarative_base
 from requests_tor import RequestsTor
 
 class ComprasGovAPIResource(dg.ConfigurableResource):
@@ -30,5 +31,30 @@ class SqlAlchemyResource(dg.ConfigurableResource):
     def get_engine(self):
         engine = create_engine(self.connection_string)
         return engine
+    
+
+class ComprasgovTableResource(dg.ConfigurableResource):
+    def create_comprasgov_itens_table(self, engine):
+        Base = declarative_base()
+        class ComprasGovItens(Base):
+            __tablename__ = "comprasgov_itens"
+            codigo_item = Column(Integer, primary_key=True, autoincrement=False)
+            codigo_grupo = Column(Integer)
+            nome_grupo = Column(String(255))
+            codigo_classe = Column(Integer)
+            nome_classe = Column(String(2048))
+            codigo_pdm = Column(Integer)
+            nome_pdm = Column(String(2048))
+            descricao_item = Column(String(2048))
+            status_item = Column(Boolean)
+            item_sustentavel = Column(Boolean)
+            codigo_ncm = Column(Integer)
+            descricriao_ncm = Column(String(2048))
+            data_hora_atualizacao = Column(String(255))
+
+        Base.metadata.create_all(engine)
+
+        return ComprasGovItens
+
 
 

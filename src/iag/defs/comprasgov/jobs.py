@@ -9,6 +9,8 @@ comprasgov_job = dg.define_asset_job(
     selection=[
         assets.raw_item_dataframe,
         assets.raw_items_parquet,
-        assets.mariadb_items_table,
+        assets.items_keys_mapping,
+        assets.silver_items_parquet,
+        assets.items_data_loading,
     ]
 )

@@ -2,7 +2,7 @@
 __pycache__/
 *.py[codz]
 *$py.class
-
+.tmp_dagster_home*/
 # C extensions
 *.so
 
