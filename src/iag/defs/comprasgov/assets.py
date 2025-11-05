@@ -1,18 +1,36 @@
 import pandas as pd
 import dagster as dg
+from time import sleep
 from pathlib import Path
-from .resources import ComprasGovAPIResource, SqlAlchemyResource, ComprasgovTableResource
+from . import resources
 from sqlalchemy.orm import Session
 
 
 @dg.asset(kinds={"pandas"})
 def raw_item_dataframe(
     context: dg.AssetExecutionContext,
-    comprasgov_api: ComprasGovAPIResource
+    comprasgov_api: resources.ComprasGovAPIResource,
+    catalog_groups: resources.CatalogGroupsResource
 ) -> pd.DataFrame:
-    items = comprasgov_api.get_items(page=1, page_width=500, group_code=70)
-    context.log.info(f"Status Code: {items.status_code}")
-    df = pd.DataFrame(items.json()["resultado"])
+    groups = catalog_groups.get_selected_groups()
+    
+    items_list = []
+
+    for group in groups:
+            page = 1
+            has_more_pages = True
+            while has_more_pages:
+                try:
+                    items = comprasgov_api.get_items(page=page, page_width=500, group_code=group)
+                    items_list += (items.json()["resultado"])
+                    has_more_pages = (items.json()["paginasRestantes"] > 0)
+                    sleep(1)
+                    log_text = f"Appending page {page}, group {group}"
+                    context.log.info(log_text)
+                    page = page + 1
+                except:
+                    context.log.error(f"Can't get page {page}, group {group}")
+    df = pd.DataFrame(items_list)
     return df
 
 
@@ -65,9 +83,9 @@ def silver_items_parquet(
 
 @dg.asset(kinds={"sqlalchemy", "mariadb", "pandas"})
 def items_data_loading(
-    sqlalchemy: SqlAlchemyResource,
+    sqlalchemy: resources.SqlAlchemyResource,
     items_keys_mapping: pd.DataFrame,
-    comprasgov_table: ComprasgovTableResource
+    comprasgov_table: resources.ComprasgovTableResource
 ):
     engine = sqlalchemy.get_engine()
     data = items_keys_mapping.to_dict(orient="records")

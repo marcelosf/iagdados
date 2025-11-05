@@ -3,6 +3,33 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.orm import declarative_base
 from requests_tor import RequestsTor
 
+
+class CatalogGroupsResource(dg.ConfigurableResource):
+    def get_selected_groups(self):
+        selected_groups = [
+            35,
+            40,
+            41,
+            47,
+            49,
+            51,
+            52,
+            53,
+            56,
+            58,
+            60,
+            61,
+            63,
+            70,
+            71,
+            74,
+            75,
+            80,
+            85
+        ]
+        return selected_groups
+
+
 class ComprasGovAPIResource(dg.ConfigurableResource):
     base_url: str
     stauts_item: str = "true"
