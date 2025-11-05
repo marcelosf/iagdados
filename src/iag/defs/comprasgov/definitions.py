@@ -1,6 +1,5 @@
 import dagster as dg
-from dagster_sqlalchemy import SqlAlchemyResource
-from .resources import ComprasGovAPIResource
+from .resources import ComprasGovAPIResource, SqlAlchemyResource
 
 
 @dg.definitions

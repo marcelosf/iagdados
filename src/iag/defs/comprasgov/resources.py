@@ -1,5 +1,5 @@
-import requests
 import dagster as dg
+from sqlalchemy import create_engine
 from requests_tor import RequestsTor
 
 class ComprasGovAPIResource(dg.ConfigurableResource):
@@ -22,3 +22,13 @@ class ComprasGovAPIResource(dg.ConfigurableResource):
 
         response = tor.get(self.base_url, params=parameters, headers=headers)
         return response
+
+
+class SqlAlchemyResource(dg.ConfigurableResource):
+    connection_string: str
+    
+    def get_engine(self):
+        engine = create_engine(self.connection_string)
+        return engine
+
+
