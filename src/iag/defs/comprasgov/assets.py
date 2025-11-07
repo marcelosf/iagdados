@@ -12,6 +12,9 @@ def raw_item_dataframe(
     comprasgov_api: resources.ComprasGovAPIResource,
     catalog_groups: resources.CatalogGroupsResource
 ) -> pd.DataFrame:
+    """
+    Extrai os dados de  items
+    """
     groups = catalog_groups.get_selected_groups()
     
     items_list = []
