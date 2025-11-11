@@ -27,7 +27,7 @@ RUN uv pip install --system --no-cache .
 RUN mkdir -p /opt/dagster/dagster_home/storage/logs
 
 # Expor portas
-EXPOSE 3000 4000
+EXPOSE ${WEBSERVER_PORT} ${DAEMON_PORT}
 
 # Usuário não-root (segurança)
 RUN useradd -m -u 1000 dagster && \

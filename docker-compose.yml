@@ -11,6 +11,8 @@ services:
       -m iag.definitions
     environment:
       # Dagster configs
+      WEBSERVER_PORT: ${WEBSERVER_PORT}
+      DAEMON_PORT: ${DAEMON_PORT}
       DAGSTER_HOME: /opt/dagster/dagster_home
       DAGSTER_POSTGRES_HOST: postgres
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -47,6 +49,8 @@ services:
     container_name: dagster_daemon
     command: dagster-daemon run
     environment:
+      WEBSERVER_PORT: ${WEBSERVER_PORT}
+      DAEMON_PORT: ${DAEMON_PORT}
       DAGSTER_HOME: /opt/dagster/dagster_home
       DAGSTER_POSTGRES_HOST: postgres
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -79,8 +83,10 @@ services:
       dockerfile: Dockerfile
     container_name: dagster_webserver
     command: >
-      dagster-webserver -h 0.0.0.0 -p 3000
+      dagster-webserver -h 0.0.0.0 -p ${WEBSERVER_PORT}
     environment:
+      WEBSERVER_PORT: ${WEBSERVER_PORT}
+      DAEMON_PORT: ${DAEMON_PORT}
       DAGSTER_HOME: /opt/dagster/dagster_home
       DAGSTER_POSTGRES_HOST: postgres
       DAGSTER_POSTGRES_USER: ${POSTGRES_USER}
@@ -94,7 +100,7 @@ services:
       COMPRASGOV_API_BASE_URL: ${COMPRASGOV_API_BASE_URL}
 
     ports:
-      - "${DAGSTER_PORT:-3000}:3000"
+      - "${WEBSERVER_PORT:-3000}:${WEBSERVER_PORT}"
     volumes:
       - ./src:/opt/dagster/app/src:ro
       - ./dagster_home:/opt/dagster/dagster_home
