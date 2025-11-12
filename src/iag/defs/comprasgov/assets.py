@@ -41,10 +41,13 @@ def raw_item_dataframe(
 @dg.asset(kinds={"parquet"})
 def raw_items_parquet(
     context: dg.AssetExecutionContext,
+    data_path: resources.DataPathResource,
     raw_item_dataframe: pd.DataFrame
 ):
+    context.log.info(f"Gravando dados em {file_path}")
     filename = "raw_items"
-    file_path = (Path(__file__).parent / f"../../data/raw/{filename}.parquet")
+    path = data_path.get_data_path()
+    file_path = f"{path}/raw/{filename}.parquet"
     raw_item_dataframe.to_parquet(file_path)
     return file_path
 
@@ -54,6 +57,7 @@ def items_keys_mapping(
     context: dg.AssetExecutionContext,
     raw_items_parquet
 ):
+    context.log.info("Mapeando dados")
     items_df = pd.read_parquet(raw_items_parquet)
     keys_mapping = {
         "codigoItem": "codigo_item",
@@ -76,10 +80,12 @@ def items_keys_mapping(
 @dg.asset(kinds={"parquet"})
 def silver_items_parquet(
     context: dg.AssetExecutionContext,
+    data_path: resources.DataPathResource,
     items_keys_mapping: pd.DataFrame
 ):
     filename = "silver_items"
-    file_path = (Path(__file__).parent / f"../../data/silver/{filename}.parquet")
+    path = data_path.get_data_path()
+    file_path = f"{path}/silver/{filename}.parquet"
     items_keys_mapping.to_parquet(file_path)
     return file_path
 

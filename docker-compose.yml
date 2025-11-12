@@ -22,6 +22,7 @@ services:
       PYTHONPATH: /opt/dagster/app/src
 
       # PROJECT VARIABLES
+      DATA_PATH: ${DATA_PATH}
       MARIADB_CONNECTION_STRING: ${MARIADB_CONNECTION_STRING}
       COMPRASGOV_API_BASE_URL: ${COMPRASGOV_API_BASE_URL}
       ENVIRONMENT: ${ENVIRONMENT:-production}
@@ -64,6 +65,7 @@ services:
       COMPRASGOV_API_BASE_URL: ${COMPRASGOV_API_BASE_URL}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATA_PATH: ${DATA_PATH}
     volumes:
       - ./src:/opt/dagster/app/src:ro
       - ./dagster_home:/opt/dagster/dagster_home
@@ -98,6 +100,7 @@ services:
       # Code variables
       MARIADB_CONNECTION_STRING: ${MARIADB_CONNECTION_STRING}
       COMPRASGOV_API_BASE_URL: ${COMPRASGOV_API_BASE_URL}
+      DATA_PATH: ${DATA_PATH}
 
     ports:
       - "${WEBSERVER_PORT:-3000}:${WEBSERVER_PORT}"

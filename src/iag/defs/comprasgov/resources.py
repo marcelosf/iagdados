@@ -5,6 +5,13 @@ from sqlalchemy.orm import declarative_base
 from requests_tor import RequestsTor
 
 
+class DataPathResource(dg.ConfigurableResource):
+    data_path: str
+
+    def get_data_path(self):
+        return self.data_path
+
+
 class CatalogGroupsResource(dg.ConfigurableResource):
     def get_selected_groups(self):
         selected_groups = [
